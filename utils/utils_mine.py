@@ -1,5 +1,5 @@
 import torch
-from models.net import SNet
+# from models.net import SNet
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -112,9 +112,9 @@ if __name__ == '__main__':
     #             img_backbone_type='resnet101', flow_backbone_type='resnet34')
     # load_MGA(a, '../pre-trained/MGA_trained.pth')
 
-    net = SNet(cfg=None).cuda()
-    net = fuse_MGA_F3Net('../pre-trained/MGA_trained.pth', '../pre-trained/F3Net.pth', net)
-    torch.save(net.state_dict(), '../pre-trained/SNet.pth')
+    # net = SNet(cfg=None).cuda()
+    # net = fuse_MGA_F3Net('../pre-trained/MGA_trained.pth', '../pre-trained/F3Net.pth', net)
+    # torch.save(net.state_dict(), '../pre-trained/SNet.pth')
     # net = load_part_of_model(net, '../pre-trained/SNet.pth')
     # input = torch.zeros([2, 3, 380, 380]).cuda()
     # output = net(input, input)
