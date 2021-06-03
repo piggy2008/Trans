@@ -84,7 +84,7 @@ class ResNet(nn.Module):
         return out2, out3, out4, out5
 
     def initialize(self):
-        self.load_state_dict(torch.load('../pre-trained/resnet50-19c8e357.pth'), strict=False)
+        self.load_state_dict(torch.load('pre-trained/resnet50-19c8e357.pth'), strict=False)
 
 class SFM(nn.Module):
     def __init__(self):
