@@ -72,42 +72,71 @@ class Transformer(nn.Module):
 class MapFuse(nn.Module):
     def __init__(self, dim, input_channel, depth, heads, mlp_dim, dim_head = 64, embedding_level = [], dropout = 0., emb_dropout = 0.):
         super().__init__()
-        self.embedding_level2 = nn.Sequential(
+        self.embedding_level_2h = nn.Sequential(
             Rearrange('b c h w -> b c (h w)'),
-            nn.Linear(embedding_level[0], dim),
+            nn.Linear(embedding_level[0], dim * dim),
         )
-        self.embedding_level3 = nn.Sequential(
+        self.embedding_level_3h = nn.Sequential(
             Rearrange('b c h w -> b c (h w)'),
-            nn.Linear(embedding_level[1], dim),
+            nn.Linear(embedding_level[1], dim * dim),
         )
-        self.embedding_level4 = nn.Sequential(
+        self.embedding_level_4h = nn.Sequential(
             Rearrange('b c h w -> b c (h w)'),
-            nn.Linear(embedding_level[2], dim),
+            nn.Linear(embedding_level[2], dim * dim),
+        )
+        self.embedding_level_5h = nn.Sequential(
+            Rearrange('b c h w -> b c (h w)'),
+            nn.Linear(embedding_level[3], dim * dim),
+        )
+        self.embedding_level_2f = nn.Sequential(
+            Rearrange('b c h w -> b c (h w)'),
+            nn.Linear(embedding_level[4], dim * dim),
+        )
+        self.embedding_level_3f = nn.Sequential(
+            Rearrange('b c h w -> b c (h w)'),
+            nn.Linear(embedding_level[5], dim * dim),
+        )
+        self.embedding_level_4f = nn.Sequential(
+            Rearrange('b c h w -> b c (h w)'),
+            nn.Linear(embedding_level[6], dim * dim),
         )
         # self.recover = nn.Sequential(
         #     nn.Linear(4096, dim)
         # )
 
-        self.transformer = Transformer(dim * input_channel, depth, heads, dim_head, mlp_dim, dropout)
+        self.transformer = Transformer(dim * dim * input_channel, depth, heads, dim_head, mlp_dim, dropout)
 
-    def forward(self, feat_level2, feat_level3, feat_level4):
-        b, c, _, _ = feat_level2.shape
-        feat2 = self.embedding_level2(feat_level2)
-        feat3 = self.embedding_level3(feat_level3)
-        feat4 = self.embedding_level4(feat_level4)
+    def initialize(self):
+        pass
 
-        feat = torch.cat([feat2, feat3, feat4], dim=1)
+    def forward(self, feat2h, feat3h, feat4h, feat5h, feat2f, feat3f, feat4f):
+        b, c, _, _ = feat2h.shape
+        feat2 = self.embedding_level_2h(feat2h)
+        feat3 = self.embedding_level_3h(feat3h)
+        feat4 = self.embedding_level_4h(feat4h)
+        feat5 = self.embedding_level_5h(feat5h)
+        feat6 = self.embedding_level_2f(feat2f)
+        feat7 = self.embedding_level_3f(feat3f)
+        feat8 = self.embedding_level_4f(feat4f)
+
+        feat = torch.cat([feat2, feat3, feat4, feat5, feat6, feat7, feat8], dim=1)
         feat = rearrange(feat, 'b (n c) d -> b n (c d)', c=c)
 
         feat = self.transformer(feat)
         # feat = self.recover(feat)
         feat = rearrange(feat, 'b n (c d) -> b (n c) d', c=c)
+        feat = rearrange(feat, 'b c (h w) -> b c h w', h=32)
         return feat
 
 if __name__ == '__main__':
     input1 = torch.zeros(1, 32, 56, 56)
     input2 = torch.zeros(1, 32, 28, 28)
     input3 = torch.zeros(1, 32, 14, 14)
-    mf = MapFuse(256, 32, 4, 4, 256, embedding_level=[56*56, 28*28, 14*14])
-    output = mf(input1, input2, input3)
+    input4 = torch.zeros(1, 32, 7, 7)
+
+    input2f = torch.zeros(1, 32, 28, 28)
+    input3f = torch.zeros(1, 32, 14, 14)
+    input4f = torch.zeros(1, 32, 14, 14)
+    mf = MapFuse(32, 32, 4, 4, 256, embedding_level=[56*56, 28*28, 14*14, 7*7, 28*28, 14*14, 14*14])
+    output = mf(input1, input2, input3, input4, input2f, input3f, input4f)
     print(output.shape)
