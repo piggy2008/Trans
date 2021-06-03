@@ -200,7 +200,7 @@ class INet(nn.Module):
         # self.decoder3 = Decoder_flow()
         # self.se_many2 = SEMany2Many4(6, 64)
         # self.gnn_embedding = GNN_Embedding()
-        self.linearp1 = nn.Conv2d(32*7, 1, kernel_size=3, stride=1, padding=1)
+        self.linearp1 = nn.Conv2d(64*7, 1, kernel_size=3, stride=1, padding=1)
         # self.linearp2 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         # self.linearp3 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         #
