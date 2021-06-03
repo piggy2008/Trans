@@ -129,14 +129,14 @@ class MapFuse(nn.Module):
         return feat
 
 if __name__ == '__main__':
-    input1 = torch.zeros(1, 32, 56, 56)
-    input2 = torch.zeros(1, 32, 28, 28)
-    input3 = torch.zeros(1, 32, 14, 14)
-    input4 = torch.zeros(1, 32, 7, 7)
+    input1 = torch.zeros(1, 64, 56, 56)
+    input2 = torch.zeros(1, 64, 28, 28)
+    input3 = torch.zeros(1, 64, 14, 14)
+    input4 = torch.zeros(1, 64, 7, 7)
 
-    input2f = torch.zeros(1, 32, 28, 28)
-    input3f = torch.zeros(1, 32, 14, 14)
-    input4f = torch.zeros(1, 32, 14, 14)
-    mf = MapFuse(32, 32, 4, 4, 256, embedding_level=[56*56, 28*28, 14*14, 7*7, 28*28, 14*14, 14*14])
+    input2f = torch.zeros(1, 64, 28, 28)
+    input3f = torch.zeros(1, 64, 14, 14)
+    input4f = torch.zeros(1, 64, 14, 14)
+    mf = MapFuse(32, 64, 4, 4, 256, embedding_level=[56*56, 28*28, 14*14, 7*7, 28*28, 14*14, 14*14])
     output = mf(input1, input2, input3, input4, input2f, input3f, input4f)
     print(output.shape)
