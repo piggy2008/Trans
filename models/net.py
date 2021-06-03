@@ -200,7 +200,7 @@ class INet(nn.Module):
         # self.decoder3 = Decoder_flow()
         # self.se_many2 = SEMany2Many4(6, 64)
         # self.gnn_embedding = GNN_Embedding()
-        self.linearp1 = nn.Conv2d(64*7, 1, kernel_size=3, stride=1, padding=1)
+        self.linearp3 = nn.Conv2d(64*7, 1, kernel_size=3, stride=1, padding=1)
         # self.linearp2 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         # self.linearp3 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         #
@@ -229,7 +229,7 @@ class INet(nn.Module):
             pred1 = self.mf(out2h, out3h, out4h, out5v, out2f, out3f, out4f)
             shape = x.size()[2:] if shape is None else shape
 
-            pred1a = F.interpolate(self.linearp1(pred1), size=shape, mode='bilinear')
+            pred1a = F.interpolate(self.linearp3(pred1), size=shape, mode='bilinear')
 
 
             return pred1a
@@ -238,7 +238,7 @@ class INet(nn.Module):
             pred1 = self.mf(out2h, out3h, out4h, out5v, out3h, out4h, out5f)
             shape = x.size()[2:] if shape is None else shape
 
-            pred1a = F.interpolate(self.linearp1(pred1), size=shape, mode='bilinear')
+            pred1a = F.interpolate(self.linearp3(pred1), size=shape, mode='bilinear')
 
             return pred1a
 
