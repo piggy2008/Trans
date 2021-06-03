@@ -3,9 +3,9 @@ import os
 
 # szu 169 sever
 # datasets_root = '/data/ty'
-save_root = '/mnt/ssd/ty/SVS'
+save_root = './'
 # local pc
-datasets_root = '/home/qub/data/saliency'
+datasets_root = '/home/amax/data/ty'
 
 saving_path = os.path.join(save_root, 'ckpt')
 
