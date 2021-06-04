@@ -34,7 +34,7 @@ args = {
     'crf_refine': False,  # whether to use crf to refine results
     'save_results': True,  # whether to save the resulting masks
     'input_size': (380, 380),
-    'start': 0
+    'start': 40000
 }
 
 img_transform = transforms.Compose([
@@ -60,20 +60,20 @@ to_pil = transforms.ToPILImage()
 # gt_root = os.path.join(segtrack_path, 'GT')
 # imgs_path = os.path.join(segtrack_path, 'SegTrackV2_test_single.txt')
 
-# to_test = {'ViSal': os.path.join(visal_path, 'ViSal_test')}
-# gt_root = os.path.join(visal_path, 'GT')
-# flow_root = os.path.join(visal_path, 'flow')
-# imgs_path = os.path.join(visal_path, 'ViSal_test_single.txt')
+to_test = {'ViSal': os.path.join(visal_path, 'ViSal_test')}
+gt_root = os.path.join(visal_path, 'GT')
+flow_root = os.path.join(visal_path, 'flow')
+imgs_path = os.path.join(visal_path, 'ViSal_test_single.txt')
 
 # to_test = {'VOS': os.path.join(vos_path, 'VOS_test')}
 # gt_root = os.path.join(vos_path, 'GT')
 # flow_root = os.path.join(vos_path, 'flow')
 # imgs_path = os.path.join(vos_path, 'VOS_test_single.txt')
 
-to_test = {'DAVSOD': os.path.join(davsod_path, 'DAVSOD_test')}
-gt_root = os.path.join(davsod_path, 'GT')
-flow_root = os.path.join(davsod_path, 'flow')
-imgs_path = os.path.join(davsod_path, 'DAVSOD_test_single.txt')
+# to_test = {'DAVSOD': os.path.join(davsod_path, 'DAVSOD_test')}
+# gt_root = os.path.join(davsod_path, 'GT')
+# flow_root = os.path.join(davsod_path, 'flow')
+# imgs_path = os.path.join(davsod_path, 'DAVSOD_test_single.txt')
 
 # to_test = {'MCL': os.path.join(mcl_path, 'MCL_test')}
 # gt_root = os.path.join(mcl_path, 'GT')
@@ -82,7 +82,7 @@ imgs_path = os.path.join(davsod_path, 'DAVSOD_test_single.txt')
 def main(snapshot):
     # net = R3Net(motion='', se_layer=False, dilation=False, basic_model='resnet50')
 
-    net = INet(cfg=None, GNN=args['gnn'])
+    net = INet(cfg=None)
     if snapshot is None:
         print ('load snapshot \'%s\' for testing' % args['snapshot'])
         # net.load_state_dict(torch.load('pretrained/R2Net.pth', map_location='cuda:2'))
@@ -128,7 +128,7 @@ def main(snapshot):
                     flow_var = Variable(img_transform(flow).unsqueeze(0), volatile=True).cuda()
                     start = time.time()
 
-                    prediction2, prediction, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _, prediction3 = net(img_var, flow_var)
+                    prediction = net(img_var, flow_var)
                     prediction = torch.sigmoid(prediction)
 
                     end = time.time()
@@ -152,7 +152,7 @@ def main(snapshot):
 
                     start = time.time()
 
-                    prediction2, prediction, prediction3, _, _, _, _, _, _, _, _, _, _, _, _, _, _ = net(img_var, flow_var)
+                    prediction3 = net(img_var, flow_var)
                     prediction = torch.sigmoid(prediction3)
 
                     end = time.time()
