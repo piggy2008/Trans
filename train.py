@@ -355,7 +355,7 @@ def train_single2(net, inputs, labels, optimizer, curr_iter):
 
     # loss6 = criterion_str(out3f_flow, labels)
 
-    total_loss = (loss0 + out2u + out3u) / 2
+    total_loss = (loss0 + loss1 + loss2) / 2
     # distill_loss = loss6_k + loss7_k + loss8_k
 
     # total_loss = total_loss + 0.1 * distill_loss
