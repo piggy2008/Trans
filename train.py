@@ -165,7 +165,7 @@ def main():
         teacher.cuda(device_id2)
 
     net = INet(cfg=None).cuda(device_id).train()
-    bkbone, flow_modules, remains = [], [], []
+    bkbone, remains = [], []
     for name, param in net.named_parameters():
         if 'bkbone' in name:
             # param.requires_grad = False
@@ -173,9 +173,9 @@ def main():
         # elif 'flow' in name or 'linearf' in name or 'decoder' in name:
         #     print('flow related:', name)
         #     flow_modules.append(param)
-        elif 'flow' in name or 'linearf' in name or 'decoder' in name:
-            print('decoder related:', name)
-            flow_modules.append(param)
+        # elif 'flow' in name or 'linearf' in name or 'decoder' in name:
+        #     print('decoder related:', name)
+        #     flow_modules.append(param)
         else:
             print('remains:', name)
             remains.append(param)
@@ -187,7 +187,7 @@ def main():
     #      'lr': args['lr'], 'weight_decay': args['weight_decay']}
     # ], momentum=args['momentum'])
 
-    optimizer = optim.SGD([{'params': bkbone}, {'params': flow_modules}, {'params': remains}],
+    optimizer = optim.SGD([{'params': bkbone}, {'params': remains}],
                           lr=args['lr'], momentum=args['momentum'],
                           weight_decay=args['weight_decay'], nesterov=True)
 
@@ -197,7 +197,7 @@ def main():
         optimizer.load_state_dict(torch.load(os.path.join(ckpt_path, exp_name, args['snapshot'] + '_optim.pth')))
         optimizer.param_groups[0]['lr'] = 0.5 * args['lr']
         optimizer.param_groups[1]['lr'] = args['lr']
-        optimizer.param_groups[2]['lr'] = args['lr']
+        # optimizer.param_groups[2]['lr'] = args['lr']
 
     net = load_part_of_model(net, 'pre-trained/SNet.pth', device_id=device_id)
     if len(args['pretrain']) > 0:
@@ -219,12 +219,12 @@ def train(net, optimizer, teacher=None):
         # dataloader_iterator = iter(train_loader2)
         for i, data in enumerate(train_loader):
 
-            optimizer.param_groups[0]['lr'] = 0.1 * args['lr'] * (1 - float(curr_iter) / args['iter_num']
+            optimizer.param_groups[0]['lr'] = 0.5 * args['lr'] * (1 - float(curr_iter) / args['iter_num']
                                                                   ) ** args['lr_decay']
             optimizer.param_groups[1]['lr'] = args['lr'] * (1 - float(curr_iter) / args['iter_num']
                                                             ) ** args['lr_decay']
-            optimizer.param_groups[2]['lr'] = args['lr'] * (1 - float(curr_iter) / args['iter_num']
-                                                                  ) ** args['lr_decay']
+            # optimizer.param_groups[2]['lr'] = args['lr'] * (1 - float(curr_iter) / args['iter_num']
+            #                                                       ) ** args['lr_decay']
             #
             # optimizer.param_groups[3]['lr'] = 0.1 * args['lr'] * (1 - float(curr_iter) / args['iter_num']
             #                                                 ) ** args['lr_decay']
