@@ -199,9 +199,9 @@ class INet(nn.Module):
         self.feedback2 = nn.Sequential(nn.Conv2d(7 * 64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
         self.feedback3 = nn.Sequential(nn.Conv2d(7 * 64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
 
-        self.mf1 = MapFuse(64, 14, 4, 4, 256)
-        self.mf2 = MapFuse(64, 28, 4, 4, 256)
-        self.mf3 = MapFuse(64, 56, 4, 4, 256)
+        self.mf1 = MapFuse(64, 24, 4, 4, 256)
+        self.mf2 = MapFuse(64, 48, 4, 4, 256)
+        self.mf3 = MapFuse(64, 95, 4, 4, 256)
         # self.decoder1 = Decoder_flow()
         # self.decoder2 = Decoder_flow()
         # self.decoder3 = Decoder_flow()
@@ -290,7 +290,7 @@ class INet(nn.Module):
 
 if __name__ == '__main__':
         net = INet(cfg=None)
-        input = torch.zeros([2, 3, 224, 224])
+        input = torch.zeros([2, 3, 380, 380])
         # size: 380*380
         # out2h:95*95 out3h:48*48 out4h:24*24 out5v:12*12
         # out1f:95*95 out2f:48*48 out3f:24*24 out4v:24*24
