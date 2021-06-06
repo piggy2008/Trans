@@ -267,9 +267,9 @@ def train_single(net, inputs, flows, labels, optimizer, curr_iter, teacher):
 
     out1u, out2u, out3u = net(inputs, flows)
 
-    loss0 = criterion_str(out1u, labels)
-    loss1 = criterion_str(out2u, labels)
-    loss2 = criterion_str(out3u, labels)
+    loss0 = criterion(out1u, labels)
+    loss1 = criterion(out2u, labels)
+    loss2 = criterion(out3u, labels)
     # loss3 = criterion_str(out3r, labels)
     # loss4 = criterion_str(out4r, labels)
     # loss5 = criterion_str(out5r, labels)
@@ -297,9 +297,9 @@ def train_single(net, inputs, flows, labels, optimizer, curr_iter, teacher):
         flows = flows.cuda(device_id2)
         prediction, _, _, _, _ = teacher(inputs, flows)
         prediction = prediction.cuda(device_id)
-        loss0_t = criterion_str(out1u, F.sigmoid(prediction))
-        loss1_t = criterion_str(out2u, F.sigmoid(prediction))
-        loss2_t = criterion_str(out3u, F.sigmoid(prediction))
+        loss0_t = criterion(out1u, F.sigmoid(prediction))
+        loss1_t = criterion(out2u, F.sigmoid(prediction))
+        loss2_t = criterion(out3u, F.sigmoid(prediction))
         # loss3_t = criterion_str(out3r, F.sigmoid(prediction))
         # loss4_t = criterion_str(out4r, F.sigmoid(prediction))
         # loss5_t = criterion_str(out5r, F.sigmoid(prediction))
@@ -346,9 +346,9 @@ def train_single2(net, inputs, labels, optimizer, curr_iter):
 
     out1u, out2u, out3u = net(inputs)
 
-    loss0 = criterion_str(out1u, labels)
-    loss1 = criterion_str(out2u, labels)
-    loss2 = criterion_str(out3u, labels)
+    loss0 = criterion(out1u, labels)
+    loss1 = criterion(out2u, labels)
+    loss2 = criterion(out3u, labels)
     # loss3 = criterion_str(out3r, labels)
     # loss4 = criterion_str(out4r, labels)
     # loss5 = criterion_str(out5r, labels)
