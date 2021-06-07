@@ -199,9 +199,9 @@ class INet(nn.Module):
         self.feedback2 = nn.Sequential(nn.Conv2d(7 * 64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
         self.feedback3 = nn.Sequential(nn.Conv2d(7 * 64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
 
-        self.mf1 = MapFuse(64, 24, 4, 4, 256)
-        self.mf2 = MapFuse(64, 48, 4, 4, 256)
-        self.mf3 = MapFuse(64, 95, 4, 4, 256)
+        self.mf1 = MapFuse(64, 24, 2, 2, 256)
+        self.mf2 = MapFuse(64, 48, 2, 2, 256)
+        # self.mf3 = MapFuse(64, 95, 2, 2, 256)
         # self.decoder1 = Decoder_flow()
         # self.decoder2 = Decoder_flow()
         # self.decoder3 = Decoder_flow()
@@ -209,7 +209,7 @@ class INet(nn.Module):
         # self.gnn_embedding = GNN_Embedding()
         self.linearpa = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         self.linearpb = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
-        self.linearpc = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
+        # self.linearpc = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         # self.linearp2 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         # self.linearp3 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         #
@@ -227,7 +227,6 @@ class INet(nn.Module):
         self.initialize()
 
     def forward(self, x, flow=None, shape=None):
-        start = time.time()
         out2h, out3h, out4h, out5v = self.bkbone(x) # layer1, layer2, layer3, layer4
         out2h, out3h, out4h, out5v = self.squeeze2(out2h), self.squeeze3(out3h), self.squeeze4(out4h), self.squeeze5(out5v)
         if flow is not None:
@@ -244,19 +243,19 @@ class INet(nn.Module):
             out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
             pred2 = self.feedback2(feedback2)
 
-            feedback3 = self.mf3(out2h + pred2, out3h + pred2, out4h + pred2,
-                                 out5v + pred2, out2f + pred2, out3f + pred2, out4f + pred2)
-            # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
-            pred3 = self.feedback2(feedback3)
+            # feedback3 = self.mf3(out2h + pred2, out3h + pred2, out4h + pred2,
+            #                      out5v + pred2, out2f + pred2, out3f + pred2, out4f + pred2)
+            # # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
+            # pred3 = self.feedback2(feedback3)
 
             shape = x.size()[2:] if shape is None else shape
 
             pred1a = F.interpolate(self.linearpa(pred1), size=shape, mode='bilinear')
             pred2a = F.interpolate(self.linearpb(pred2), size=shape, mode='bilinear')
-            pred3a = F.interpolate(self.linearpc(pred3), size=shape, mode='bilinear')
+            # pred3a = F.interpolate(self.linearpc(pred3), size=shape, mode='bilinear')
 
 
-            return pred1a, pred2a, pred3a
+            return pred1a, pred2a
         else:
             out5f = F.interpolate(out5v, size=out4h.shape[2:], mode='bilinear')
             feedback1 = self.mf1(out2h, out3h, out4h, out5v, out3h, out4h, out5f)
@@ -268,18 +267,18 @@ class INet(nn.Module):
             out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
             pred2 = self.feedback2(feedback2)
 
-            feedback3 = self.mf3(out2h + pred2, out3h + pred2, out4h + pred2,
-                                 out5v + pred2, out2f + pred2, out3f + pred2, out4f + pred2)
-            # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
-            pred3 = self.feedback2(feedback3)
+            # feedback3 = self.mf3(out2h + pred2, out3h + pred2, out4h + pred2,
+            #                      out5v + pred2, out2f + pred2, out3f + pred2, out4f + pred2)
+            # # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
+            # pred3 = self.feedback2(feedback3)
 
             shape = x.size()[2:] if shape is None else shape
 
             pred1a = F.interpolate(self.linearpa(pred1), size=shape, mode='bilinear')
             pred2a = F.interpolate(self.linearpb(pred2), size=shape, mode='bilinear')
-            pred3a = F.interpolate(self.linearpc(pred3), size=shape, mode='bilinear')
+            # pred3a = F.interpolate(self.linearpc(pred3), size=shape, mode='bilinear')
 
-            return pred1a, pred2a, pred3a
+            return pred1a, pred2a
 
     def initialize(self):
         # if self.cfg.snapshot:
