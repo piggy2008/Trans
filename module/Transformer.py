@@ -126,7 +126,7 @@ class Attention2(nn.Module):
 
         output = []
         for i, q in enumerate(q_list):
-            result = torch.zeros(b, head*64, h, w)
+            result = torch.zeros(b, head*64, h, w).cuda()
             for j, k in enumerate(k_list):
                 dots = einsum('b h i d, b h j d -> b h i j', q, k) * self.scale
                 attn = self.attend(dots)
