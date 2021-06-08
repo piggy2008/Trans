@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from MGA.ResNet import ResNet34
-from module.Transformer import MapFuse
+from module.Transformer import MapFuse, Attention2
 
 import time
 # from utils.utils_mine import visualize
@@ -195,13 +195,13 @@ class INet(nn.Module):
         self.flow_align2 = nn.Sequential(nn.Conv2d(128, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
         self.flow_align1 = nn.Sequential(nn.Conv2d(64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
 
-        self.feedback1 = nn.Sequential(nn.Conv2d(7 * 64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
-        self.feedback2 = nn.Sequential(nn.Conv2d(7 * 64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
-        self.feedback3 = nn.Sequential(nn.Conv2d(7 * 64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
+        self.feedback1 = nn.Sequential(nn.Conv2d(64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
+        self.feedback2 = nn.Sequential(nn.Conv2d(64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
+        self.feedback3 = nn.Sequential(nn.Conv2d(64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
 
-        self.mf1 = MapFuse(64, 24, 2, 2, 256)
-        self.mf2 = MapFuse(64, 48, 2, 2, 256)
-        # self.mf3 = MapFuse(64, 95, 2, 2, 256)
+        self.mf1 = Attention2(64, 24, 4)
+        self.mf2 = Attention2(64, 48, 4)
+        self.mf3 = Attention2(64, 95, 4)
         # self.decoder1 = Decoder_flow()
         # self.decoder2 = Decoder_flow()
         # self.decoder3 = Decoder_flow()
@@ -209,7 +209,7 @@ class INet(nn.Module):
         # self.gnn_embedding = GNN_Embedding()
         self.linearpa = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         self.linearpb = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
-        # self.linearpc = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
+        self.linearpc = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         # self.linearp2 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         # self.linearp3 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         #
@@ -234,38 +234,45 @@ class INet(nn.Module):
             out1f, out2f = self.flow_align1(flow_layer1), self.flow_align2(flow_layer2)
             out3f, out4f = self.flow_align3(flow_layer3), self.flow_align4(flow_layer4)
 
-            feedback1 = self.mf1(out2h, out3h, out4h, out5v, out2f, out3f, out4f)
-            out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback1, 64, 1)
-            pred1 = self.feedback1(feedback1)
+            out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf1(out2h, out3h, out4h, out5v, out2f, out3f, out4f)
+            # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback1, 64, 1)
+            pred1 = self.feedback1(out2h + out3h + out4h + out5v + out2f + out3f + out4f)
 
-            feedback2 = self.mf2(out2h + pred1, out3h + pred1, out4h + pred1,
+            out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf2(out2h + pred1, out3h + pred1, out4h + pred1,
                                  out5v + pred1, out2f + pred1, out3f + pred1, out4f + pred1)
-            out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
-            pred2 = self.feedback2(feedback2)
+            # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
+            pred2 = self.feedback2(out2h + out3h + out4h + out5v + out2f + out3f + out4f)
 
-            # feedback3 = self.mf3(out2h + pred2, out3h + pred2, out4h + pred2,
-            #                      out5v + pred2, out2f + pred2, out3f + pred2, out4f + pred2)
-            # # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
-            # pred3 = self.feedback2(feedback3)
+            out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf3(out2h + pred2, out3h + pred2, out4h + pred2,
+                                 out5v + pred2, out2f + pred2, out3f + pred2, out4f + pred2)
+            # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
+            pred3 = self.feedback2(out2h + out3h + out4h + out5v + out2f + out3f + out4f)
 
             shape = x.size()[2:] if shape is None else shape
 
             pred1a = F.interpolate(self.linearpa(pred1), size=shape, mode='bilinear')
             pred2a = F.interpolate(self.linearpb(pred2), size=shape, mode='bilinear')
-            # pred3a = F.interpolate(self.linearpc(pred3), size=shape, mode='bilinear')
+            pred3a = F.interpolate(self.linearpc(pred3), size=shape, mode='bilinear')
 
 
-            return pred1a, pred2a
+            return pred1a, pred2a, pred3a
         else:
             out5f = F.interpolate(out5v, size=out4h.shape[2:], mode='bilinear')
-            feedback1 = self.mf1(out2h, out3h, out4h, out5v, out3h, out4h, out5f)
-            out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback1, 64, 1)
-            pred1 = self.feedback1(feedback1)
+            out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf1(out2h, out3h, out4h, out5v, out3h, out4h, out5f)
+            # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback1, 64, 1)
+            pred1 = self.feedback1(out2h + out3h + out4h + out5v + out2f + out3f + out4f)
 
-            feedback2 = self.mf2(out2h + pred1, out3h + pred1, out4h + pred1,
-                                 out5v + pred1, out2f + pred1, out3f + pred1, out4f + pred1)
-            out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
-            pred2 = self.feedback2(feedback2)
+            out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf2(out2h + pred1, out3h + pred1, out4h + pred1,
+                                                                       out5v + pred1, out2f + pred1, out3f + pred1,
+                                                                       out4f + pred1)
+
+            pred2 = self.feedback2(out2h + out3h + out4h + out5v + out2f + out3f + out4f)
+
+            out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf3(out2h + pred2, out3h + pred2, out4h + pred2,
+                                                                       out5v + pred2, out2f + pred2, out3f + pred2,
+                                                                       out4f + pred2)
+            # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
+            pred3 = self.feedback2(out2h + out3h + out4h + out5v + out2f + out3f + out4f)
 
             # feedback3 = self.mf3(out2h + pred2, out3h + pred2, out4h + pred2,
             #                      out5v + pred2, out2f + pred2, out3f + pred2, out4f + pred2)
@@ -276,9 +283,9 @@ class INet(nn.Module):
 
             pred1a = F.interpolate(self.linearpa(pred1), size=shape, mode='bilinear')
             pred2a = F.interpolate(self.linearpb(pred2), size=shape, mode='bilinear')
-            # pred3a = F.interpolate(self.linearpc(pred3), size=shape, mode='bilinear')
+            pred3a = F.interpolate(self.linearpc(pred3), size=shape, mode='bilinear')
 
-            return pred1a, pred2a
+            return pred1a, pred2a, pred3a
 
     def initialize(self):
         # if self.cfg.snapshot:
