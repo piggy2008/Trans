@@ -52,7 +52,7 @@ args = {
     'iter_num': 200000,
     'iter_save': 4000,
     'iter_start_seq': 0,
-    'train_batch_size': 5,
+    'train_batch_size': 6,
     'last_iter': 0,
     'lr': 10 * 1e-3,
     'lr_decay': 0.9,
