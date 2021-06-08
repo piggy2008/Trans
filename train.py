@@ -52,7 +52,7 @@ args = {
     'iter_num': 200000,
     'iter_save': 4000,
     'iter_start_seq': 0,
-    'train_batch_size': 4,
+    'train_batch_size': 10,
     'last_iter': 0,
     'lr': 10 * 1e-3,
     'lr_decay': 0.9,
@@ -265,11 +265,11 @@ def train_single(net, inputs, flows, labels, optimizer, curr_iter, teacher):
     # plt.show()
     optimizer.zero_grad()
 
-    out1u, out2u, out3u = net(inputs, flows)
+    out1u, out2u = net(inputs, flows)
 
     loss0 = criterion_str(out1u, labels)
     loss1 = criterion_str(out2u, labels)
-    loss2 = criterion_str(out3u, labels)
+    # loss2 = criterion_str(out3u, labels)
     # loss3 = criterion_str(out3r, labels)
     # loss4 = criterion_str(out4r, labels)
     # loss5 = criterion_str(out5r, labels)
@@ -299,7 +299,7 @@ def train_single(net, inputs, flows, labels, optimizer, curr_iter, teacher):
         prediction = prediction.cuda(device_id)
         loss0_t = criterion_str(out1u, F.sigmoid(prediction))
         loss1_t = criterion_str(out2u, F.sigmoid(prediction))
-        loss2_t = criterion_str(out3u, F.sigmoid(prediction))
+        # loss2_t = criterion_str(out3u, F.sigmoid(prediction))
         # loss3_t = criterion_str(out3r, F.sigmoid(prediction))
         # loss4_t = criterion_str(out4r, F.sigmoid(prediction))
         # loss5_t = criterion_str(out5r, F.sigmoid(prediction))
@@ -309,7 +309,7 @@ def train_single(net, inputs, flows, labels, optimizer, curr_iter, teacher):
         # loss8_t = criterion_str(out4f, F.sigmoid(prediction))
         # loss9_t = criterion_str(out3f_flow, F.sigmoid(prediction))
 
-        distill_loss_t = (loss0_t + loss1_t + loss2_t) / 2
+        distill_loss_t = (loss0_t + loss1_t) / 2
 
     # loss2_d = criterion_str(out2r, F.sigmoid(out2u))
     # loss3_d = criterion_str(out3r, F.sigmoid(out2u))
@@ -323,7 +323,7 @@ def train_single(net, inputs, flows, labels, optimizer, curr_iter, teacher):
     # loss10 = criterion_str(out1a, labels)
     # loss11 = criterion_str(out2a, labels)
 
-    total_loss = (loss0 + loss1 + loss2) / 2
+    total_loss = (loss0 + loss1) / 2
     # distill_loss = loss6_k + loss7_k
     if args['distillation']:
         total_loss = total_loss + args['teacher_distill'] * distill_loss_t
@@ -334,7 +334,7 @@ def train_single(net, inputs, flows, labels, optimizer, curr_iter, teacher):
     total_loss.backward()
     optimizer.step()
 
-    print_log(total_loss, loss0, loss1, loss2, args['train_batch_size'], curr_iter, optimizer)
+    print_log(total_loss, loss0, loss1, loss1, args['train_batch_size'], curr_iter, optimizer)
 
     return
 
@@ -344,18 +344,18 @@ def train_single2(net, inputs, labels, optimizer, curr_iter):
 
     optimizer.zero_grad()
 
-    out1u, out2u, out3u = net(inputs)
+    out1u, out2u, = net(inputs)
 
     loss0 = criterion_str(out1u, labels)
     loss1 = criterion_str(out2u, labels)
-    loss2 = criterion_str(out3u, labels)
+    # loss2 = criterion_str(out3u, labels)
     # loss3 = criterion_str(out3r, labels)
     # loss4 = criterion_str(out4r, labels)
     # loss5 = criterion_str(out5r, labels)
 
     # loss6 = criterion_str(out3f_flow, labels)
 
-    total_loss = (loss0 + loss1 + loss2) / 2
+    total_loss = (loss0 + loss1) / 2
     # distill_loss = loss6_k + loss7_k + loss8_k
 
     # total_loss = total_loss + 0.1 * distill_loss
