@@ -93,6 +93,8 @@ class Attention2(nn.Module):
         self.to_out6 = nn.Sequential(nn.Conv2d(inner_dim, dim, 1, bias=False), nn.BatchNorm2d(dim), nn.ReLU(inplace=True))
         self.to_out7 = nn.Sequential(nn.Conv2d(inner_dim, dim, 1, bias=False), nn.BatchNorm2d(dim), nn.ReLU(inplace=True))
 
+    def initialize(self):
+        pass
     def forward(self, feat2h, feat3h, feat4h, feat5h, feat2f, feat3f, feat4f):
         feat2 = F.interpolate(self.embedding_level_2h(feat2h), size=self.shape, mode='bilinear')
         feat3 = F.interpolate(self.embedding_level_3h(feat3h), size=self.shape, mode='bilinear')
