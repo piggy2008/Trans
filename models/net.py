@@ -199,9 +199,9 @@ class INet(nn.Module):
         self.feedback2 = nn.Sequential(nn.Conv2d(64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
         self.feedback3 = nn.Sequential(nn.Conv2d(64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
 
-        self.mf1 = Attention2(64, 24, 4)
-        self.mf2 = Attention2(64, 48, 4)
-        self.mf3 = Attention2(64, 95, 4)
+        self.mf1 = Attention2(64, 14, 4)
+        self.mf2 = Attention2(64, 28, 4)
+        self.mf3 = Attention2(64, 56, 4)
         # self.decoder1 = Decoder_flow()
         # self.decoder2 = Decoder_flow()
         # self.decoder3 = Decoder_flow()
