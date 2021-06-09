@@ -45,7 +45,7 @@ ckpt_path = saving_path
 exp_name = 'VideoSaliency' + '_' + time_str
 
 args = {
-    'distillation': True,
+    'distillation': False,
     'L2': False,
     'KL': True,
     'structure': True,
