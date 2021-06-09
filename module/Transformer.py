@@ -77,21 +77,9 @@ class Attention2(nn.Module):
         inner_dim = dim * heads
         self.attend = nn.Softmax(dim = -1)
         # self.to_qkv = nn.Linear(dim, inner_dim * 3, bias = False)
-        self.to_qkv1 = nn.Sequential(nn.Conv2d(dim, inner_dim * 3, 1, bias=False), nn.BatchNorm2d(inner_dim * 3), nn.ReLU(inplace=True))
-        self.to_qkv2 = nn.Sequential(nn.Conv2d(dim, inner_dim * 3, 1, bias=False), nn.BatchNorm2d(inner_dim * 3), nn.ReLU(inplace=True))
-        self.to_qkv3 = nn.Sequential(nn.Conv2d(dim, inner_dim * 3, 1, bias=False), nn.BatchNorm2d(inner_dim * 3), nn.ReLU(inplace=True))
-        self.to_qkv4 = nn.Sequential(nn.Conv2d(dim, inner_dim * 3, 1, bias=False), nn.BatchNorm2d(inner_dim * 3), nn.ReLU(inplace=True))
-        self.to_qkv5 = nn.Sequential(nn.Conv2d(dim, inner_dim * 3, 1, bias=False), nn.BatchNorm2d(inner_dim * 3), nn.ReLU(inplace=True))
-        self.to_qkv6 = nn.Sequential(nn.Conv2d(dim, inner_dim * 3, 1, bias=False), nn.BatchNorm2d(inner_dim * 3), nn.ReLU(inplace=True))
-        self.to_qkv7 = nn.Sequential(nn.Conv2d(dim, inner_dim * 3, 1, bias=False), nn.BatchNorm2d(inner_dim * 3), nn.ReLU(inplace=True))
+        self.to_qkv = nn.Sequential(nn.Conv2d(dim, inner_dim * 3, 1, bias=False), nn.BatchNorm2d(inner_dim * 3), nn.ReLU(inplace=True))
 
-        self.to_out1 = nn.Sequential(nn.Conv2d(inner_dim, dim, 1, bias=False), nn.BatchNorm2d(dim), nn.ReLU(inplace=True))
-        self.to_out2 = nn.Sequential(nn.Conv2d(inner_dim, dim, 1, bias=False), nn.BatchNorm2d(dim), nn.ReLU(inplace=True))
-        self.to_out3 = nn.Sequential(nn.Conv2d(inner_dim, dim, 1, bias=False), nn.BatchNorm2d(dim), nn.ReLU(inplace=True))
-        self.to_out4 = nn.Sequential(nn.Conv2d(inner_dim, dim, 1, bias=False), nn.BatchNorm2d(dim), nn.ReLU(inplace=True))
-        self.to_out5 = nn.Sequential(nn.Conv2d(inner_dim, dim, 1, bias=False), nn.BatchNorm2d(dim), nn.ReLU(inplace=True))
-        self.to_out6 = nn.Sequential(nn.Conv2d(inner_dim, dim, 1, bias=False), nn.BatchNorm2d(dim), nn.ReLU(inplace=True))
-        self.to_out7 = nn.Sequential(nn.Conv2d(inner_dim, dim, 1, bias=False), nn.BatchNorm2d(dim), nn.ReLU(inplace=True))
+        self.to_out = nn.Sequential(nn.Conv2d(inner_dim, dim, 1, bias=False), nn.BatchNorm2d(dim), nn.ReLU(inplace=True))
 
     def initialize(self):
         pass
@@ -107,13 +95,13 @@ class Attention2(nn.Module):
 
         b, c, h, w = feat2.shape
         head = self.heads
-        qkv1 = self.to_qkv1(feat2).chunk(3, dim=1)
-        qkv2 = self.to_qkv2(feat3).chunk(3, dim=1)
-        qkv3 = self.to_qkv3(feat4).chunk(3, dim=1)
-        qkv4 = self.to_qkv4(feat5).chunk(3, dim=1)
-        qkv5 = self.to_qkv5(feat6).chunk(3, dim=1)
-        qkv6 = self.to_qkv6(feat7).chunk(3, dim=1)
-        qkv7 = self.to_qkv7(feat8).chunk(3, dim=1)
+        qkv1 = self.to_qkv(feat2).chunk(3, dim=1)
+        qkv2 = self.to_qkv(feat3).chunk(3, dim=1)
+        qkv3 = self.to_qkv(feat4).chunk(3, dim=1)
+        qkv4 = self.to_qkv(feat5).chunk(3, dim=1)
+        qkv5 = self.to_qkv(feat6).chunk(3, dim=1)
+        qkv6 = self.to_qkv(feat7).chunk(3, dim=1)
+        qkv7 = self.to_qkv(feat8).chunk(3, dim=1)
 
         qkv_list = [qkv1, qkv2, qkv3, qkv4, qkv5, qkv6, qkv7]
         q_list, k_list, v_list = [], [], []
@@ -134,9 +122,9 @@ class Attention2(nn.Module):
                 result = result + rearrange(out, 'b head c (h w) -> b (head c) h w', head=head, h=h, w=h)
             output.append(result)
 
-        return self.to_out1(output[0]) + feat2, self.to_out2(output[1]) + feat3, self.to_out3(output[2]) + feat4, \
-               self.to_out4(output[3]) + feat5, self.to_out5(output[4]) + feat6, \
-               self.to_out6(output[5]) + feat7, self.to_out7(output[6]) + feat8
+        return self.to_out(output[0]) + feat2, self.to_out(output[1]) + feat3, self.to_out(output[2]) + feat4, \
+               self.to_out(output[3]) + feat5, self.to_out(output[4]) + feat6, \
+               self.to_out(output[5]) + feat7, self.to_out(output[6]) + feat8
 
 class Transformer(nn.Module):
     def __init__(self, dim, size, depth, heads, dim_head, mlp_dim, dropout = 0.):

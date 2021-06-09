@@ -201,7 +201,7 @@ class INet(nn.Module):
 
         self.mf1 = Attention2(64, 24, 4)
         self.mf2 = Attention2(64, 48, 4)
-        # self.mf3 = Attention2(64, 95, 4)
+        self.mf3 = Attention2(64, 95, 4)
         # self.decoder1 = Decoder_flow()
         # self.decoder2 = Decoder_flow()
         # self.decoder3 = Decoder_flow()
@@ -209,7 +209,7 @@ class INet(nn.Module):
         # self.gnn_embedding = GNN_Embedding()
         self.linearpa = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         self.linearpb = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
-        # self.linearpc = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
+        self.linearpc = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         # self.linearp2 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         # self.linearp3 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         #
@@ -243,19 +243,19 @@ class INet(nn.Module):
             # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
             pred2 = self.feedback2(out2h + out3h + out4h + out5v + out2f + out3f + out4f)
 
-            # out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf3(out2h + pred2, out3h + pred2, out4h + pred2,
-            #                      out5v + pred2, out2f + pred2, out3f + pred2, out4f + pred2)
+            out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf3(out2h + pred2, out3h + pred2, out4h + pred2,
+                                 out5v + pred2, out2f + pred2, out3f + pred2, out4f + pred2)
             # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
-            # pred3 = self.feedback2(out2h + out3h + out4h + out5v + out2f + out3f + out4f)
+            pred3 = self.feedback2(out2h + out3h + out4h + out5v + out2f + out3f + out4f)
 
             shape = x.size()[2:] if shape is None else shape
 
             pred1a = F.interpolate(self.linearpa(pred1), size=shape, mode='bilinear')
             pred2a = F.interpolate(self.linearpb(pred2), size=shape, mode='bilinear')
-            # pred3a = F.interpolate(self.linearpc(pred3), size=shape, mode='bilinear')
+            pred3a = F.interpolate(self.linearpc(pred3), size=shape, mode='bilinear')
 
 
-            return pred1a, pred2a
+            return pred1a, pred2a, pred3a
         else:
             out5f = F.interpolate(out5v, size=out4h.shape[2:], mode='bilinear')
             out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf1(out2h, out3h, out4h, out5v, out3h, out4h, out5f)
@@ -274,18 +274,18 @@ class INet(nn.Module):
             # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
             # pred3 = self.feedback2(out2h + out3h + out4h + out5v + out2f + out3f + out4f)
 
-            # feedback3 = self.mf3(out2h + pred2, out3h + pred2, out4h + pred2,
-            #                      out5v + pred2, out2f + pred2, out3f + pred2, out4f + pred2)
-            # # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
-            # pred3 = self.feedback2(feedback3)
+            feedback3 = self.mf3(out2h + pred2, out3h + pred2, out4h + pred2,
+                                 out5v + pred2, out2f + pred2, out3f + pred2, out4f + pred2)
+            # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
+            pred3 = self.feedback2(feedback3)
 
             shape = x.size()[2:] if shape is None else shape
 
             pred1a = F.interpolate(self.linearpa(pred1), size=shape, mode='bilinear')
             pred2a = F.interpolate(self.linearpb(pred2), size=shape, mode='bilinear')
-            # pred3a = F.interpolate(self.linearpc(pred3), size=shape, mode='bilinear')
+            pred3a = F.interpolate(self.linearpc(pred3), size=shape, mode='bilinear')
 
-            return pred1a, pred2a
+            return pred1a, pred2a, pred3a
 
     def initialize(self):
         # if self.cfg.snapshot:
