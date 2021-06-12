@@ -199,10 +199,10 @@ class INet(nn.Module):
         self.feedback2 = nn.Sequential(nn.Conv2d(64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
         self.feedback3 = nn.Sequential(nn.Conv2d(64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
 
-        self.mf1 = Attention2(64, 14, 4)
+        # self.mf1 = Attention2(64, 14, 4)
         self.mf2 = Attention2(64, 28, 4)
         self.mf3 = Attention2(64, 56, 4)
-        # self.decoder1 = Decoder_flow()
+        self.decoder1 = Decoder_flow()
         # self.decoder2 = Decoder_flow()
         # self.decoder3 = Decoder_flow()
         # self.se_many2 = SEMany2Many4(6, 64)
@@ -233,13 +233,12 @@ class INet(nn.Module):
             flow_layer4, flow_layer1, _, flow_layer2, flow_layer3 = self.flow_bkbone(flow)
             out1f, out2f = self.flow_align1(flow_layer1), self.flow_align2(flow_layer2)
             out3f, out4f = self.flow_align3(flow_layer3), self.flow_align4(flow_layer4)
-
-            out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf1(out2h, out3h, out4h, out5v, out2f, out3f, out4f)
+            out2h, out3h, out4h, out5v, out2f, out3f, out4f, pred1 = self.decoder1(out2h, out3h, out4h, out5v, out2f, out3f, out4f)
+            # out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf1(out2h, out3h, out4h, out5v, out2f, out3f, out4f)
             # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback1, 64, 1)
-            pred1 = self.feedback1(out2h + out3h + out4h + out5v + out2f + out3f + out4f)
+            # pred1 = self.feedback1(out2h + out3h + out4h + out5v + out2f + out3f + out4f)
 
-            out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf2(out2h + pred1, out3h + pred1, out4h + pred1,
-                                 out5v + pred1, out2f + pred1, out3f + pred1, out4f + pred1)
+            out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf2(out2h, out3h, out4h, out5v, out2f, out3f, out4f)
             # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
             pred2 = self.feedback2(out2h + out3h + out4h + out5v + out2f + out3f + out4f)
 

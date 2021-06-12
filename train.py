@@ -54,7 +54,7 @@ args = {
     'iter_start_seq': 0,
     'train_batch_size': 5,
     'last_iter': 0,
-    'lr': 10 * 1e-3,
+    'lr': 5 * 1e-3,
     'lr_decay': 0.9,
     'weight_decay': 5e-4,
     'momentum': 0.925,
@@ -334,7 +334,7 @@ def train_single(net, inputs, flows, labels, optimizer, curr_iter, teacher):
     total_loss.backward()
     optimizer.step()
 
-    print_log(total_loss, loss0, loss1, loss1, args['train_batch_size'], curr_iter, optimizer)
+    print_log(total_loss, loss0, loss1, loss2, args['train_batch_size'], curr_iter, optimizer)
 
     return
 
@@ -362,7 +362,7 @@ def train_single2(net, inputs, labels, optimizer, curr_iter):
     total_loss.backward()
     optimizer.step()
 
-    print_log(total_loss, loss0, loss1, loss1, args['train_batch_size'], curr_iter, optimizer)
+    print_log(total_loss, loss0, loss1, loss2, args['train_batch_size'], curr_iter, optimizer)
 
     return
 

@@ -83,7 +83,7 @@ class Attention2(nn.Module):
 
     def initialize(self):
         pass
-    def forward(self, feat2h, feat3h, feat4h, feat5h, feat2f, feat3f, feat4f):
+    def forward(self, feat2h, feat3h, feat4h, feat5h, feat2f, feat3f, feat4f, pred=None):
         feat2 = F.interpolate(self.embedding_level_2h(feat2h), size=self.shape, mode='bilinear')
         feat3 = F.interpolate(self.embedding_level_3h(feat3h), size=self.shape, mode='bilinear')
         feat4 = F.interpolate(self.embedding_level_4h(feat4h), size=self.shape, mode='bilinear')
@@ -91,6 +91,16 @@ class Attention2(nn.Module):
         feat6 = F.interpolate(self.embedding_level_2f(feat2f), size=self.shape, mode='bilinear')
         feat7 = F.interpolate(self.embedding_level_3f(feat3f), size=self.shape, mode='bilinear')
         feat8 = F.interpolate(self.embedding_level_4f(feat4f), size=self.shape, mode='bilinear')
+
+        if pred is not None:
+            pred = F.interpolate(pred, size=self.shape, mode='bilinear')
+            feat2 = feat2 + pred
+            feat3 = feat3 + pred
+            feat4 = feat4 + pred
+            feat5 = feat5 + pred
+            feat6 = feat6 + pred
+            feat7 = feat7 + pred
+            feat8 = feat8 + pred
 
 
         b, c, h, w = feat2.shape
