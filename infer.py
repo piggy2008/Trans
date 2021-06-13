@@ -153,7 +153,7 @@ def main(snapshot):
                     start = time.time()
 
                     prediction, prediction2, prediction3 = net(img_var, flow_var)
-                    prediction = torch.sigmoid(prediction3)
+                    prediction = torch.sigmoid(prediction)
 
                     end = time.time()
                     print('running time:', (end - start))
