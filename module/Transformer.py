@@ -54,7 +54,7 @@ class Attention(nn.Module):
         return self.to_out(out)
 
 class Attention2(nn.Module):
-    def __init__(self, dim, size, heads = 8):
+    def __init__(self, dim, size):
         super().__init__()
 
         self.embedding_level_2h = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.BatchNorm2d(64),
@@ -72,9 +72,8 @@ class Attention2(nn.Module):
         self.embedding_level_4f = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.BatchNorm2d(64),
                                                 nn.ReLU(inplace=True))
         self.shape = [size, size]
-        self.heads = heads
         self.scale = dim ** -0.5
-        inner_dim = dim * heads
+        inner_dim = dim
         self.attend = nn.Softmax(dim = -1)
         # self.to_qkv = nn.Linear(dim, inner_dim * 3, bias = False)
         self.to_qkv = nn.Sequential(nn.Conv2d(dim, inner_dim * 3, 1, bias=False), nn.BatchNorm2d(inner_dim * 3), nn.ReLU(inplace=True))
@@ -104,7 +103,6 @@ class Attention2(nn.Module):
 
 
         b, c, h, w = feat2.shape
-        head = self.heads
         qkv1 = self.to_qkv(feat2).chunk(3, dim=1)
         qkv2 = self.to_qkv(feat3).chunk(3, dim=1)
         qkv3 = self.to_qkv(feat4).chunk(3, dim=1)
@@ -117,19 +115,19 @@ class Attention2(nn.Module):
         q_list, k_list, v_list = [], [], []
 
         for qkv in qkv_list:
-            q, k, v = map(lambda t: rearrange(t, 'b (head c) h w -> b head c (h w)', head=head), qkv)
+            q, k, v = map(lambda t: rearrange(t, 'b c h w -> b c (h w)'), qkv)
             q_list.append(q)
             k_list.append(k)
             v_list.append(v)
 
         output = []
         for i, q in enumerate(q_list):
-            result = torch.zeros(b, head*64, h, w).cuda()
+            result = torch.zeros(b, 64, h, w).cuda()
             for j, k in enumerate(k_list):
                 dots = einsum('b h i d, b h j d -> b h i j', q, k) * self.scale
                 attn = self.attend(dots)
                 out = einsum('b h i j, b h j d -> b h i d', attn, v_list[i])
-                result = result + rearrange(out, 'b head c (h w) -> b (head c) h w', head=head, h=h, w=h)
+                result = result + rearrange(out, 'b c (h w) -> b c h w', h=h, w=w)
             output.append(result)
 
         return self.to_out(output[0]) + feat2, self.to_out(output[1]) + feat3, self.to_out(output[2]) + feat4, \
@@ -203,7 +201,7 @@ if __name__ == '__main__':
     input3f = torch.zeros(1, 64, 14, 14)
     input4f = torch.zeros(1, 64, 14, 14)
     # mf = MapFuse(64, 56, 4, 4, 256)
-    att = Attention2(64, 28, 4)
+    att = Attention2(64, 28)
     # output = mf(input1, input2, input3, input4, input2f, input3f, input4f)
     output1, output2, output3, output4, output5, output6, output7 = att(input1, input2, input3, input4, input2f, input3f, input4f)
     print(output1.shape)
