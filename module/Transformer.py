@@ -124,9 +124,9 @@ class Attention2(nn.Module):
         for i, q in enumerate(q_list):
             result = torch.zeros(b, 64, h, w).cuda()
             for j, k in enumerate(k_list):
-                dots = einsum('b h i d, b h j d -> b h i j', q, k) * self.scale
+                dots = einsum('b i d, b j d -> b i j', q, k) * self.scale
                 attn = self.attend(dots)
-                out = einsum('b h i j, b h j d -> b h i d', attn, v_list[i])
+                out = einsum('b i j, b j d -> b i d', attn, v_list[i])
                 result = result + rearrange(out, 'b c (h w) -> b c h w', h=h, w=w)
             output.append(result)
 
