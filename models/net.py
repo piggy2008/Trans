@@ -199,7 +199,7 @@ class INet(nn.Module):
         self.feedback2 = nn.Sequential(nn.Conv2d(64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
         self.feedback3 = nn.Sequential(nn.Conv2d(64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
 
-        # self.mf1 = Attention2(64, 14, 4)
+        self.mf1 = Attention2(64, 24)
         self.mf2 = Attention2(64, 56)
         self.mf3 = Attention2(64, 96)
         self.decoder1 = Decoder_flow()
@@ -234,9 +234,9 @@ class INet(nn.Module):
             out1f, out2f = self.flow_align1(flow_layer1), self.flow_align2(flow_layer2)
             out3f, out4f = self.flow_align3(flow_layer3), self.flow_align4(flow_layer4)
             out2h, out3h, out4h, out5v, out2f, out3f, out4f, pred1 = self.decoder1(out2h, out3h, out4h, out5v, out2f, out3f, out4f)
-            # out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf1(out2h, out3h, out4h, out5v, out2f, out3f, out4f)
+            out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf1(out2h, out3h, out4h, out5v, out2f, out3f, out4f, pred1)
             # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback1, 64, 1)
-            # pred1 = self.feedback1(out2h + out3h + out4h + out5v + out2f + out3f + out4f)
+            pred1 = self.feedback1(out3h + out4h + out5v)
 
             out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf2(out2h, out3h, out4h, out5v, out2f, out3f, out4f)
             # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
@@ -258,9 +258,11 @@ class INet(nn.Module):
             out5f = F.interpolate(out5v, size=out4h.shape[2:], mode='bilinear')
             out2h, out3h, out4h, out5v, out2f, out3f, out4f, pred1 = self.decoder1(out2h, out3h, out4h, out5v, out3h, out4h, out5f)
 
+            out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf1(out2h, out3h, out4h, out5v, out2f, out3f, out4f,
+                                                                       pred1)
             out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf2(out2h, out3h, out4h, out5v, out2f, out3f, out4f, pred1)
 
-            pred2 = self.feedback2(out4h + out5v)
+            pred2 = self.feedback2(out3h + out4h + out5v)
 
             out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf3(out2h, out3h, out4h, out5v, out2f, out3f, out4f, pred2)
             # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
