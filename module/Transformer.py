@@ -74,7 +74,8 @@ class Attention2(nn.Module):
         self.shape = [size, size]
         self.scale = dim ** -0.5
         inner_dim = dim
-        self.attend = nn.Softmax(dim = -1)
+        self.attend = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.BatchNorm2d(64),
+                                                nn.Sigmoid())
         # self.to_qkv = nn.Linear(dim, inner_dim * 3, bias = False)
         self.to_qkv = nn.Sequential(nn.Conv2d(dim, inner_dim * 3, 1, bias=False), nn.BatchNorm2d(inner_dim * 3), nn.ReLU(inplace=True))
 
@@ -115,7 +116,8 @@ class Attention2(nn.Module):
         q_list, k_list, v_list = [], [], []
 
         for qkv in qkv_list:
-            q, k, v = map(lambda t: rearrange(t, 'b c h w -> b c (h w)'), qkv)
+            # q, k, v = map(lambda t: rearrange(t, 'b c h w -> b c (h w)'), qkv)
+            q, k, v = qkv
             q_list.append(q)
             k_list.append(k)
             v_list.append(v)
@@ -124,10 +126,11 @@ class Attention2(nn.Module):
         for i, q in enumerate(q_list):
             result = torch.zeros(b, 64, h, w).cuda()
             for j, k in enumerate(k_list):
-                dots = einsum('b i d, b j d -> b i j', q, k) * self.scale
-                attn = self.attend(dots)
-                out = einsum('b i j, b j d -> b i d', attn, v_list[i])
-                result = result + rearrange(out, 'b c (h w) -> b c h w', h=h, w=w)
+                tmp = q + k
+                attn = self.attend(tmp)
+                # out = einsum('b i j, b j d -> b i d', attn, v_list[i])
+                out = attn * v_list[i]
+                result = result + out
             output.append(result)
 
         return self.to_out(output[0]) + feat2, self.to_out(output[1]) + feat3, self.to_out(output[2]) + feat4, \
