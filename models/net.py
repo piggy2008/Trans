@@ -240,11 +240,11 @@ class INet(nn.Module):
 
             out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf2(out2h, out3h, out4h, out5v, out2f, out3f, out4f)
             # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
-            pred2 = self.feedback2(out4h + out5v)
+            pred2 = self.feedback2(out2h)
 
             out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf3(out2h, out3h, out4h, out5v, out2f, out3f, out4f, pred2)
             # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
-            pred3 = self.feedback3(out4h + out5v)
+            pred3 = self.feedback3(out2h)
 
             shape = x.size()[2:] if shape is None else shape
 
@@ -260,11 +260,11 @@ class INet(nn.Module):
 
             out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf2(out2h, out3h, out4h, out5v, out2f, out3f, out4f, pred1)
 
-            pred2 = self.feedback2(out4h + out5v)
+            pred2 = self.feedback2(out2h)
 
             out2h, out3h, out4h, out5v, out2f, out3f, out4f = self.mf3(out2h, out3h, out4h, out5v, out2f, out3f, out4f, pred2)
             # out2h, out3h, out4h, out5v, out2f, out3f, out4f = torch.split(feedback2, 64, 1)
-            pred3 = self.feedback3(out4h + out5v)
+            pred3 = self.feedback3(out2h)
 
             # feedback3 = self.mf3(out2h + pred2, out3h + pred2, out4h + pred2,
             #                      out5v + pred2, out2f + pred2, out3f + pred2, out4f + pred2)

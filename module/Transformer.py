@@ -137,6 +137,93 @@ class Attention2(nn.Module):
                self.to_out(output[3]) + feat5, self.to_out(output[4]) + feat6, \
                self.to_out(output[5]) + feat7, self.to_out(output[6]) + feat8
 
+class Attention3(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+
+        self.embedding_level_2h = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.BatchNorm2d(64),
+                                                nn.ReLU(inplace=True))
+        self.embedding_level_3h = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.BatchNorm2d(64),
+                                                nn.ReLU(inplace=True))
+        self.embedding_level_4h = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.BatchNorm2d(64),
+                                                nn.ReLU(inplace=True))
+        self.embedding_level_5h = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.BatchNorm2d(64),
+                                                nn.ReLU(inplace=True))
+        self.embedding_level_2f = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.BatchNorm2d(64),
+                                                nn.ReLU(inplace=True))
+        self.embedding_level_3f = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.BatchNorm2d(64),
+                                                nn.ReLU(inplace=True))
+        self.embedding_level_4f = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.BatchNorm2d(64),
+                                                nn.ReLU(inplace=True))
+
+        inner_dim = dim
+        self.attend = nn.Sequential(nn.Conv2d(64, 1, kernel_size=3, padding=1), nn.Sigmoid())
+        # self.to_qkv = nn.Linear(dim, inner_dim * 3, bias = False)
+        self.to_qkv = nn.Sequential(nn.Conv2d(dim, inner_dim * 3, 1, bias=False), nn.BatchNorm2d(inner_dim * 3), nn.ReLU(inplace=True))
+
+        self.to_out = nn.Sequential(nn.Conv2d(inner_dim, dim, 1, bias=False), nn.BatchNorm2d(dim), nn.ReLU(inplace=True))
+
+    def initialize(self):
+        pass
+
+    def local_attention(self, q_list, k_list, v_list):
+        output = []
+        for i, q in enumerate(q_list):
+            result = torch.zeros_like(v_list[0]).cuda()
+            for j, k in enumerate(k_list):
+                tmp = q + k
+                attn = self.attend(tmp)
+                # out = einsum('b i j, b j d -> b i d', attn, v_list[i])
+                out = attn * v_list[i]
+                result = result + out
+            output.append(result)
+        return output
+
+    def forward(self, feat2h, feat3h, feat4h, feat5h, feat2f, feat3f, feat4f, pred=None):
+
+        feat4 = self.embedding_level_4h(feat4h)
+        feat5 = F.interpolate(self.embedding_level_5h(feat5h), size=feat4.shape[2:], mode='bilinear')
+        feat8 = F.interpolate(self.embedding_level_4f(feat4f), size=feat4.shape[2:], mode='bilinear')
+        if pred is not None:
+            pred = F.interpolate(pred, size=feat4.shape[2:], mode='bilinear')
+            feat4 = feat4 + pred
+            feat5 = feat5 + pred
+            feat8 = feat8 + pred
+        q4, k4, v4 = self.to_qkv(feat4).chunk(3, dim=1)
+        q5, k5, v5 = self.to_qkv(feat5).chunk(3, dim=1)
+        q8, k8, v8 = self.to_qkv(feat8).chunk(3, dim=1)
+
+        q_list, k_list, v_list = [q4, q5, q8], [k4, k5, k5], [v4, v5, v8]
+        output = self.local_attention(q_list, k_list, v_list)
+        feat4_refine = self.to_out(output[0]) + feat4
+        feat5_refine = self.to_out(output[1]) + feat5
+        feat8_refine = self.to_out(output[2]) + feat8
+
+        feat3 = self.embedding_level_3h(feat3h)
+        feat7 = F.interpolate(self.embedding_level_3f(feat3f), size=feat3.shape[2:], mode='bilinear')
+        feat4_refine = F.interpolate(feat4_refine, size=feat3.shape[2:], mode='bilinear')
+        q3, k3, v3 = self.to_qkv(feat3).chunk(3, dim=1)
+        q7, k7, v7 = self.to_qkv(feat7).chunk(3, dim=1)
+        q4, k4, v4 = self.to_qkv(feat4_refine).chunk(3, dim=1)
+        q_list, k_list, v_list = [q3, q7, q4], [k3, k7, k4], [v3, v7, v4]
+        output = self.local_attention(q_list, k_list, v_list)
+        feat3_refine = self.to_out(output[0]) + feat3
+        feat7_refine = self.to_out(output[1]) + feat7
+
+        feat2 = self.embedding_level_2h(feat2h)
+        feat6 = F.interpolate(self.embedding_level_2f(feat2f), size=feat2.shape[2:], mode='bilinear')
+        feat3_refine = F.interpolate(feat3_refine, size=feat2.shape[2:], mode='bilinear')
+        q2, k2, v2 = self.to_qkv(feat2).chunk(3, dim=1)
+        q6, k6, v6 = self.to_qkv(feat6).chunk(3, dim=1)
+        q3, k3, v3 = self.to_qkv(feat3_refine).chunk(3, dim=1)
+        q_list, k_list, v_list = [q2, q6, q3], [k2, k6, k3], [v2, v6, v3]
+        output = self.local_attention(q_list, k_list, v_list)
+        feat2_refine = self.to_out(output[0]) + feat2
+        feat6_refine = self.to_out(output[1]) + feat6
+
+
+        return feat2_refine, feat3_refine, feat4_refine, feat5_refine, feat6_refine, feat7_refine, feat8_refine
+
 class Transformer(nn.Module):
     def __init__(self, dim, size, depth, heads, dim_head, mlp_dim, dropout = 0.):
         super().__init__()
@@ -204,7 +291,7 @@ if __name__ == '__main__':
     input3f = torch.zeros(1, 64, 14, 14)
     input4f = torch.zeros(1, 64, 14, 14)
     # mf = MapFuse(64, 56, 4, 4, 256)
-    att = Attention2(64, 28)
+    att = Attention3(64)
     # output = mf(input1, input2, input3, input4, input2f, input3f, input4f)
     output1, output2, output3, output4, output5, output6, output7 = att(input1, input2, input3, input4, input2f, input3f, input4f)
     print(output1.shape)
