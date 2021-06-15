@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from MGA.ResNet import ResNet34
-from module.Transformer import MapFuse, Attention2
+from module.Transformer import MapFuse, Attention2, Attention3
 
 import time
 # from utils.utils_mine import visualize
@@ -199,9 +199,9 @@ class INet(nn.Module):
         self.feedback2 = nn.Sequential(nn.Conv2d(64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
         self.feedback3 = nn.Sequential(nn.Conv2d(64, 64, 1), nn.BatchNorm2d(64), nn.ReLU(inplace=True))
 
-        self.mf1 = Attention2(64, 24)
-        self.mf2 = Attention2(64, 56)
-        self.mf3 = Attention2(64, 96)
+        self.mf1 = Attention3(64)
+        self.mf2 = Attention3(64)
+        self.mf3 = Attention3(64)
         self.decoder1 = Decoder_flow()
         # self.decoder2 = Decoder_flow()
         # self.decoder3 = Decoder_flow()
