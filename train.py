@@ -265,23 +265,25 @@ def train_single(net, inputs, flows, labels, optimizer, curr_iter, teacher):
     # plt.show()
     optimizer.zero_grad()
 
-    out1u, out2u, out3u = net(inputs, flows)
+    out1u, out2u, out3u, out2p, out3p, out4p, out5p, out2f, out3f, out4f = net(inputs, flows)
 
     loss0 = criterion_str(out1u, labels)
     loss1 = criterion_str(out2u, labels)
     loss2 = criterion_str(out3u, labels)
-    # loss3 = criterion_str(out3r, labels)
-    # loss4 = criterion_str(out4r, labels)
-    # loss5 = criterion_str(out5r, labels)
+    loss3 = criterion_str(out2p, labels)
+    loss4 = criterion_str(out3p, labels)
+    loss5 = criterion_str(out4p, labels)
+    loss6 = criterion_str(out5p, labels)
+    loss7 = criterion_str(out2f, labels)
+    loss8 = criterion_str(out3f, labels)
+    loss9 = criterion_str(out4f, labels)
 
     # loss2_k = criterion_kl(F.adaptive_avg_pool2d(out2r_k, (1, 1)), F.adaptive_avg_pool2d(pred3_k, (1, 1)))
     # loss3_k = criterion_kl(F.adaptive_avg_pool2d(out3r_k, (1, 1)), F.adaptive_avg_pool2d(pred3_k, (1, 1)))
     # loss4_k = criterion_kl(F.adaptive_avg_pool2d(out4r_k, (1, 1)), F.adaptive_avg_pool2d(pred3_k, (1, 1)))
     # loss5_k = criterion_kl(F.adaptive_avg_pool2d(out5r_k, (1, 1)), F.adaptive_avg_pool2d(pred3_k, (1, 1)))
 
-    # loss6 = criterion_str(out2f, labels)
-    # loss7 = criterion_str(out3f, labels)
-    # loss8 = criterion_str(out4f, labels)
+
 
     # loss6_k = criterion_kl(F.adaptive_avg_pool2d(out2f_k, (1, 1)), F.adaptive_avg_pool2d(pred3_k, (1, 1)))
     # loss7_k = criterion_kl(F.adaptive_avg_pool2d(out3f_k, (1, 1)), F.adaptive_avg_pool2d(pred3_k, (1, 1)))
@@ -300,13 +302,14 @@ def train_single(net, inputs, flows, labels, optimizer, curr_iter, teacher):
         loss0_t = criterion_str(out1u, F.sigmoid(prediction))
         loss1_t = criterion_str(out2u, F.sigmoid(prediction))
         loss2_t = criterion_str(out3u, F.sigmoid(prediction))
-        # loss3_t = criterion_str(out3r, F.sigmoid(prediction))
-        # loss4_t = criterion_str(out4r, F.sigmoid(prediction))
-        # loss5_t = criterion_str(out5r, F.sigmoid(prediction))
-
-        # loss6_t = criterion_str(out2f, F.sigmoid(prediction))
-        # loss7_t = criterion_str(out3f, F.sigmoid(prediction))
-        # loss8_t = criterion_str(out4f, F.sigmoid(prediction))
+        # loss3_t = criterion_str(out3p, F.sigmoid(prediction))
+        # loss4_t = criterion_str(out3p, F.sigmoid(prediction))
+        # loss5_t = criterion_str(out4p, F.sigmoid(prediction))
+        # loss6_t = criterion_str(out5p, F.sigmoid(prediction))
+        #
+        # loss7_t = criterion_str(out2f, F.sigmoid(prediction))
+        # loss8_t = criterion_str(out3f, F.sigmoid(prediction))
+        # loss9_t = criterion_str(out4f, F.sigmoid(prediction))
         # loss9_t = criterion_str(out3f_flow, F.sigmoid(prediction))
 
         distill_loss_t = (loss0_t + loss1_t + loss2_t) / 2
@@ -323,7 +326,8 @@ def train_single(net, inputs, flows, labels, optimizer, curr_iter, teacher):
     # loss10 = criterion_str(out1a, labels)
     # loss11 = criterion_str(out2a, labels)
 
-    total_loss = (loss0 + loss1 + loss2) / 2
+    total_loss = (loss0 + loss1 + loss2) / 2 + loss3 / 2 + loss4 / 4 + loss5 / 8 + loss6 / 16 \
+                 + loss7 / 4 + loss8 / 8 + loss9 / 16
     # distill_loss = loss6_k + loss7_k
     if args['distillation']:
         total_loss = total_loss + args['teacher_distill'] * distill_loss_t
@@ -344,18 +348,23 @@ def train_single2(net, inputs, labels, optimizer, curr_iter):
 
     optimizer.zero_grad()
 
-    out1u, out2u, out3u = net(inputs)
+    out1u, out2u, out3u, out2p, out3p, out4p, out5p, out2f, out3f, out4f = net(inputs, flows)
 
     loss0 = criterion_str(out1u, labels)
     loss1 = criterion_str(out2u, labels)
     loss2 = criterion_str(out3u, labels)
-    # loss3 = criterion_str(out3r, labels)
-    # loss4 = criterion_str(out4r, labels)
-    # loss5 = criterion_str(out5r, labels)
+    loss3 = criterion_str(out2p, labels)
+    loss4 = criterion_str(out3p, labels)
+    loss5 = criterion_str(out4p, labels)
+    loss6 = criterion_str(out5p, labels)
+    loss7 = criterion_str(out2f, labels)
+    loss8 = criterion_str(out3f, labels)
+    loss9 = criterion_str(out4f, labels)
 
     # loss6 = criterion_str(out3f_flow, labels)
 
-    total_loss = (loss0 + loss1 + loss2) / 2
+    total_loss = (loss0 + loss1 + loss2) / 2 + loss3 / 2 + loss4 / 4 + loss5 / 8 + loss6 / 16 \
+                 + loss7 / 4 + loss8 / 8 + loss9 / 16
     # distill_loss = loss6_k + loss7_k + loss8_k
 
     # total_loss = total_loss + 0.1 * distill_loss
