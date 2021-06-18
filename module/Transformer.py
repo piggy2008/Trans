@@ -74,7 +74,7 @@ class Attention2(nn.Module):
         self.shape = [size, size]
         self.scale = dim ** -0.5
         inner_dim = dim
-        self.attend = nn.Sequential(nn.Conv2d(64, 1, kernel_size=3, padding=1), nn.BatchNorm2d(1),
+        self.attend = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, padding=1), nn.BatchNorm2d(64),
                                                 nn.Sigmoid())
         # self.to_qkv = nn.Linear(dim, inner_dim * 3, bias = False)
         self.to_qkv = nn.Sequential(nn.Conv2d(dim, inner_dim * 3, 1, bias=False), nn.BatchNorm2d(inner_dim * 3), nn.ReLU(inplace=True))
