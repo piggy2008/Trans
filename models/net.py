@@ -211,15 +211,15 @@ class INet(nn.Module):
         self.linearpb = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         self.linearpc = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
 
-        # self.linearr2 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
-        # self.linearr3 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
-        # self.linearr4 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
-        # self.linearr5 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
-        #
-        # # self.linearf1 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
-        # self.linearf2 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
-        # self.linearf3 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
-        # self.linearf4 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
+        self.linearr2 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
+        self.linearr3 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
+        self.linearr4 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
+        self.linearr5 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
+
+        # self.linearf1 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
+        self.linearf2 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
+        self.linearf3 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
+        self.linearf4 = nn.Conv2d(64, 1, kernel_size=3, stride=1, padding=1)
         # self.EP = EP()
 
         self.initialize()
@@ -250,17 +250,17 @@ class INet(nn.Module):
             pred2a = F.interpolate(self.linearpb(pred2), size=shape, mode='bilinear')
             pred3a = F.interpolate(self.linearpc(pred3), size=shape, mode='bilinear')
 
-            # out2h_p = F.interpolate(self.linearr2(out2h), size=shape, mode='bilinear')
-            # out3h_p = F.interpolate(self.linearr3(out3h), size=shape, mode='bilinear')
-            # out4h_p = F.interpolate(self.linearr4(out4h), size=shape, mode='bilinear')
-            # out5h_p = F.interpolate(self.linearr5(out5v), size=shape, mode='bilinear')
-            #
-            # out2f_p = F.interpolate(self.linearf2(out2f), size=shape, mode='bilinear')
-            # out3f_p = F.interpolate(self.linearf3(out3f), size=shape, mode='bilinear')
-            # out4f_p = F.interpolate(self.linearf4(out4f), size=shape, mode='bilinear')
+            out2h_p = F.interpolate(self.linearr2(out2h), size=shape, mode='bilinear')
+            out3h_p = F.interpolate(self.linearr3(out3h), size=shape, mode='bilinear')
+            out4h_p = F.interpolate(self.linearr4(out4h), size=shape, mode='bilinear')
+            out5h_p = F.interpolate(self.linearr5(out5v), size=shape, mode='bilinear')
+
+            out2f_p = F.interpolate(self.linearf2(out2f), size=shape, mode='bilinear')
+            out3f_p = F.interpolate(self.linearf3(out3f), size=shape, mode='bilinear')
+            out4f_p = F.interpolate(self.linearf4(out4f), size=shape, mode='bilinear')
 
 
-            return pred1a, pred2a, pred3a
+            return pred1a, pred2a, pred3a, out2h_p, out3h_p, out4h_p, out5h_p, out2f_p, out3f_p, out4f_p
         else:
             out5f = F.interpolate(out5v, size=out4h.shape[2:], mode='bilinear')
             out2h, out3h, out4h, out5v, out2f, out3f, out4f, pred1 = self.decoder1(out2h, out3h, out4h, out5v, out3h, out4h, out5f)
@@ -284,16 +284,16 @@ class INet(nn.Module):
             pred2a = F.interpolate(self.linearpb(pred2), size=shape, mode='bilinear')
             pred3a = F.interpolate(self.linearpc(pred3), size=shape, mode='bilinear')
 
-            # out2h_p = F.interpolate(self.linearr2(out2h), size=shape, mode='bilinear')
-            # out3h_p = F.interpolate(self.linearr3(out3h), size=shape, mode='bilinear')
-            # out4h_p = F.interpolate(self.linearr4(out4h), size=shape, mode='bilinear')
-            # out5h_p = F.interpolate(self.linearr5(out5v), size=shape, mode='bilinear')
-            #
-            # out2f_p = F.interpolate(self.linearf2(out2f), size=shape, mode='bilinear')
-            # out3f_p = F.interpolate(self.linearf3(out3f), size=shape, mode='bilinear')
-            # out4f_p = F.interpolate(self.linearf4(out4f), size=shape, mode='bilinear')
+            out2h_p = F.interpolate(self.linearr2(out2h), size=shape, mode='bilinear')
+            out3h_p = F.interpolate(self.linearr3(out3h), size=shape, mode='bilinear')
+            out4h_p = F.interpolate(self.linearr4(out4h), size=shape, mode='bilinear')
+            out5h_p = F.interpolate(self.linearr5(out5v), size=shape, mode='bilinear')
 
-            return pred1a, pred2a, pred3a
+            out2f_p = F.interpolate(self.linearf2(out2f), size=shape, mode='bilinear')
+            out3f_p = F.interpolate(self.linearf3(out3f), size=shape, mode='bilinear')
+            out4f_p = F.interpolate(self.linearf4(out4f), size=shape, mode='bilinear')
+
+            return pred1a, pred2a, pred3a, out2h_p, out3h_p, out4h_p, out5h_p, out2f_p, out3f_p, out4f_p
 
     def initialize(self):
         # if self.cfg.snapshot:
