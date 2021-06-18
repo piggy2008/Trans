@@ -26,7 +26,7 @@ torch.cuda.set_device(device_id)
 # you should have the pth file in the folder './$ckpt_path$/$exp_name$'
 ckpt_path = saving_path
 
-exp_name = 'VideoSaliency_2021-06-16 22:56:13'
+exp_name = 'VideoSaliency_2021-06-15 22:35:56'
 
 args = {
     'gnn': True,
@@ -152,7 +152,7 @@ def main(snapshot):
 
                     start = time.time()
 
-                    prediction, prediction2, prediction3, _, _, _, _, _, _, _ = net(img_var, flow_var)
+                    prediction, prediction2, prediction3 = net(img_var, flow_var)
                     prediction = torch.sigmoid(prediction3)
 
                     end = time.time()
