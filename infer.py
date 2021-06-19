@@ -26,7 +26,7 @@ torch.cuda.set_device(device_id)
 # you should have the pth file in the folder './$ckpt_path$/$exp_name$'
 ckpt_path = saving_path
 
-exp_name = 'VideoSaliency_2021-06-15 22:35:56'
+exp_name = 'VideoSaliency_2021-06-18 10:56:38'
 
 args = {
     'gnn': True,
@@ -34,7 +34,7 @@ args = {
     'crf_refine': False,  # whether to use crf to refine results
     'save_results': True,  # whether to save the resulting masks
     'input_size': (380, 380),
-    'start': 0
+    'start': 80000
 }
 
 img_transform = transforms.Compose([
